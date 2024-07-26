@@ -1,0 +1,27 @@
+Observed the Nodeport 31000 for Voting & 31001 for result. 
+Voting  Processed by container ID vote-7d884dd585-lsv66.
+
+root@ip-172-31-39-23:~/example-voting-app/k8s-specifications# kubectl get pods
+NAME                      READY   STATUS    RESTARTS   AGE
+db-58cc845644-x2xh2       1/1     Running   0          69m
+redis-6878558678-w6kg7    1/1     Running   0          69m
+result-86bc6f7b5d-dq4mz   1/1     Running   0          69m
+vote-7d884dd585-lsv66     1/1     Running   0          69m
+worker-6fc5d5b668-9dx2l   1/1     Running   0          69m
+
+After deleting the Voting pod, there is no change in result & voting browser but the voting pod got created again with new ID
+After deleting the Worker pod, there is no change in result & voting browser but the worker pod got created again with new ID
+After deleting the db pod, there is no change in result & voting browser but the db pod got created again with new ID. Also one observation, that during db deletion the voting & result pods restarted.
+
+So observation is the pods are tagged & deleting any pod will not disturb the running application.
+
+root@ip-172-31-39-23:~/example-voting-app/k8s-specifications# kubectl delete po db-58cc845644-fxn99
+pod "db-58cc845644-fxn99" deleted
+root@ip-172-31-39-23:~/example-voting-app/k8s-specifications# kubectl get pods
+NAME                      READY   STATUS    RESTARTS       AGE
+db-58cc845644-tcsjh       1/1     Running   0              2m38s
+redis-6878558678-w6kg7    1/1     Running   0              80m
+result-86bc6f7b5d-dq4mz   1/1     Running   2 (2m8s ago)   80m
+vote-7d884dd585-fdhg8     1/1     Running   0              9m45s
+worker-6fc5d5b668-w7q7k   1/1     Running   2 (2m8s ago)   7m36s
+root@ip-172-31-39-23:~/example-voting-app/k8s-specifications#
