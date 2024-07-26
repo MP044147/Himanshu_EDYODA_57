@@ -1,0 +1,51 @@
+Create PVC without POD and then create PV
+root@ip-172-31-39-23:~/kubernetes-training/06-storage# kubectl get pvc
+NAME          STATUS   VOLUME       CAPACITY   ACCESS MODES   STORAGECLASS   AGE
+mongodb-pvc   Bound    mongodb-pv   1Gi        RWO,ROX                       8m19s
+
+root@ip-172-31-39-23:~/kubernetes-training/06-storage# kubectl get pv
+NAME         CAPACITY   ACCESS MODES   RECLAIM POLICY   STATUS   CLAIM                 STORAGECLASS   REASON   AGE
+mongodb-pv   1Gi        RWO,ROX        Retain           Bound    default/mongodb-pvc                           2m36s
+
+NAME          STATUS   VOLUME       CAPACITY   ACCESS MODES   STORAGECLASS   AGE
+mongodb-pvc   Bound    mongodb-pv   1Gi        RWO,ROX                       20m
+
+create 3 PV of more size (3gb, 4gb, 5 gb) and THEN create PVC of 3 gb) ▶︎ see which PV matches the PVC
+root@ip-172-31-39-23:~/kubernetes-training/06-storage# kubectl get pv
+NAME         CAPACITY   ACCESS MODES   RECLAIM POLICY   STATUS   CLAIM                 STORAGECLASS   REASON   AGE
+mongodb-pv   5Gi        RWO,ROX        Retain           Bound    default/mongodb-pvc                           14m
+
+root@ip-172-31-39-23:~/kubernetes-training/06-storage# ls
+aws-storage-class-ebs.yml  mongodb-pod-gcepd.yaml     mongodb-pv-hostpath.yaml            mongodb-pvc-dp.yaml  storageclass-fast-gcepd.yaml
+fortune                    mongodb-pod-hostpath.yaml  mongodb-pv-hostpath3.yaml           mongodb-pvc.yaml     storageclass-fast-hostpath.yaml
+fortune-pod.yaml           mongodb-pod-nfs.yaml       mongodb-pv-hostpath4.yaml           mongodb-pvc2.yaml    test.yaml
+gitrepo-volume-pod.yaml    mongodb-pod-pvc.yaml       mongodb-pv-hostpath5.yaml           pod-ebs-vol.yaml
+mongodb-pod-aws.yaml       mongodb-pv-gcepd.yaml      mongodb-pvc-dp-nostorageclass.yaml  pv_with_labels
+
+root@ip-172-31-39-23:~/kubernetes-training/06-storage# kubectl apply -f mongodb-pvc2.yaml
+Error from server (Forbidden): error when applying patch:
+{"metadata":{"annotations":{"kubectl.kubernetes.io/last-applied-configuration":"{\"apiVersion\":\"v1\",\"kind\":\"PersistentVolumeClaim\",\"metadata\":{\"annotations\":{},\"name\":\"mongodb-pvc\",\"namespace\":\"default\"},\"spec\":{\"accessModes\":[\"ReadWriteOnce\"],\"resources\":{\"requests\":{\"storage\":\"3Gi\"}},\"storageClassName\":\"\"}}\n"}},"spec":{"resources":{"requests":{"storage":"3Gi"}}}}
+to:
+Resource: "/v1, Resource=persistentvolumeclaims", GroupVersionKind: "/v1, Kind=PersistentVolumeClaim"
+Name: "mongodb-pvc", Namespace: "default"
+for: "mongodb-pvc2.yaml": error when patching "mongodb-pvc2.yaml": persistentvolumeclaims "mongodb-pvc" is forbidden: only dynamically provisioned pvc can be resized and the storageclass that provisions the pvc must support resize
+
+root@ip-172-31-39-23:~/kubernetes-training/06-storage# kubectl get pvc
+NAME          STATUS    VOLUME   CAPACITY   ACCESS MODES   STORAGECLASS   AGE
+mongodb-pvc   Pending                                                     41s
+root@ip-172-31-39-23:~/kubernetes-training/06-storage# kubectl get pvc
+NAME          STATUS    VOLUME   CAPACITY   ACCESS MODES   STORAGECLASS   AGE
+mongodb-pvc   Pending                                                     43s
+root@ip-172-31-39-23:~/kubernetes-training/06-storage# kubectl delete pv mongodb-pv
+persistentvolume "mongodb-pv" deleted
+root@ip-172-31-39-23:~/kubernetes-training/06-storage# kubectl apply -f mongodb-pv-hostpath3.yaml
+persistentvolume/mongodb-pv created
+root@ip-172-31-39-23:~/kubernetes-training/06-storage# kubectl apply -f mongodb-pv-hostpath4.yaml
+persistentvolume/mongodb-pv configured
+root@ip-172-31-39-23:~/kubernetes-training/06-storage# kubectl apply -f mongodb-pv-hostpath5.yaml
+persistentvolume/mongodb-pv configured
+root@ip-172-31-39-23:~/kubernetes-training/06-storage# kubectl get pvc
+NAME          STATUS   VOLUME       CAPACITY   ACCESS MODES   STORAGECLASS   AGE
+mongodb-pvc   Bound    mongodb-pv   4Gi        RWO,ROX                       109s
+
+
